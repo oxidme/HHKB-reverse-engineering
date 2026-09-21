@@ -1,4 +1,4 @@
-# hhkb-native
+# HHKB-reverse-engineering
 
 Native Apple Silicon tools for the HHKB Professional Classic, built on macOS's own
 IOKit. No Rosetta, no third-party dependencies.
