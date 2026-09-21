@@ -33,9 +33,12 @@ Requires only the Xcode command line tools.
 ## Development
 
 `compile_flags.txt` gives clangd what it needs; it resolves the macOS SDK on its
-own, so no absolute paths are baked in. `.clang-format` describes the Linux
-kernel style the sources use, and clangd applies it directly — the standalone
-`clang-format` binary is not required.
+own, so no absolute paths are baked in. `.clang-format` sets the house style —
+attached braces, four spaces, no tabs, 100 columns — and clangd applies it
+directly, so the standalone `clang-format` binary is not required. Xcode's
+command line tools ship one at
+`/Library/Developer/CommandLineTools/usr/bin/clang-format` if you want to run it
+over the tree by hand.
 
 `.zed/` carries folder settings and tasks for [Zed](https://zed.dev). The tasks
 cover building, probing and dumping. Writing a keymap and dumping firmware are
@@ -189,6 +192,15 @@ The wire protocol was originally reverse engineered by
 a Linux implementation built on hidapi. This project reimplements it on IOKit
 and verifies it against a Classic, which happy-hacking-gnu does not cover.
 
+## License
+
+MIT. See [LICENSE](LICENSE).
+
 ## Disclaimer
 
 Use at your own risk. This is unofficial software with no connection to PFU.
+HHKB and Happy Hacking Keyboard are trademarks of PFU Limited.
+
+No firmware image is redistributed here. `hhkb_fwdump` reads one off your own
+keyboard; what it produces is PFU's copyrighted work and is excluded from this
+repository.

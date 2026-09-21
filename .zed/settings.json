@@ -10,8 +10,8 @@
     "C": {
       // clangd picks up compile_flags.txt and .clang-format from the project root.
       "language_servers": ["clangd"],
-      "hard_tabs": true,
-      "tab_size": 8,
+      "hard_tabs": false,
+      "tab_size": 4,
       "preferred_line_length": 100,
     },
     "Python": {

@@ -1,18 +1,19 @@
-# Linux kernel style, which is what the sources are written in.
-# clangd reads this directly, so no clang-format binary is required.
+# Attached braces, four spaces, no tabs.
+# clangd reads this directly, so no clang-format binary is required to edit.
 BasedOnStyle: LLVM
 Language: Cpp
 
-UseTab: Always
-IndentWidth: 8
-TabWidth: 8
-ContinuationIndentWidth: 8
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ContinuationIndentWidth: 4
 ColumnLimit: 100
 
-BreakBeforeBraces: Linux
+BreakBeforeBraces: Attach
 AllowShortFunctionsOnASingleLine: None
-AllowShortIfStatementsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
 IndentCaseLabels: false
 
 PointerAlignment: Right
