@@ -12,5 +12,6 @@ hhkb_probe
 hhkb_dump
 hhkb_write
 hhkb_fwdump
+hhkb_reset
 *.o
 *.dSYM/

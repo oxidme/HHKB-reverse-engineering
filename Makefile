@@ -2,7 +2,7 @@ CC ?= cc
 CFLAGS ?= -O2 -Wall -Wextra
 LDFLAGS = -framework IOKit -framework CoreFoundation
 
-TOOLS = hhkb_probe hhkb_dump hhkb_write hhkb_fwdump
+TOOLS = hhkb_probe hhkb_dump hhkb_write hhkb_fwdump hhkb_reset
 
 .PHONY: all clean
 all: $(TOOLS)

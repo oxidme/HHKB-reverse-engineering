@@ -11,9 +11,11 @@
 // scanning stops.
 #include <CoreFoundation/CoreFoundation.h>
 #include <IOKit/hid/IOHIDManager.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #define REPORT_SIZE 64
 #define HHKB_VID 0x04FE
@@ -25,6 +27,11 @@
 #define MAX_FIRMWARE (1024 * 1024)
 #define MAX_PACKETS 65536
 #define CHUNK_MAX 56
+
+// A complete dump takes a couple of seconds. The per-read timeouts do not
+// cover IOHIDDeviceSetReport, which blocks with no timeout of its own when the
+// board is already in the read-only state, so bound the whole run instead.
+#define WATCHDOG_SECONDS 60
 
 static uint8_t g_in[REPORT_SIZE];
 static volatile int g_got;
@@ -92,9 +99,23 @@ static void build(uint8_t *buf, uint8_t cmd)
 	buf[2] = cmd;
 }
 
+static void on_watchdog(int sig)
+{
+	(void)sig;
+	static const char msg[] =
+		"\nwatchdog: no progress. The board is most likely already in the\n"
+		"read-only state DUMP_FIRMWARE leaves behind. Unplug and replug the\n"
+		"keyboard before trying again.\n";
+	write(STDERR_FILENO, msg, sizeof(msg) - 1);
+	_exit(3);
+}
+
 int main(int argc, char **argv)
 {
 	const char *out_path = (argc > 1) ? argv[1] : "firmware.bin";
+
+	signal(SIGALRM, on_watchdog);
+	alarm(WATCHDOG_SECONDS);
 
 	IOHIDDeviceRef dev = find_device();
 	if (!dev) {
@@ -187,6 +208,8 @@ int main(int argc, char **argv)
 			break;
 		}
 	}
+
+	alarm(0);
 
 	printf("\npackets: %d, bytes: %zu (0x%zX)\n", packets, size, size);
 	printf("packet counter: first=%u last=%u, %s\n", first_seq, last_seq,

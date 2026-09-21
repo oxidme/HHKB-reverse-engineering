@@ -18,7 +18,8 @@ macOS 27.0 on an M2.
 | Read keyboard info, DIP state, mode | works |
 | Read keymaps (all modes, both layers) | works |
 | Write keymaps | works, takes effect immediately |
-| Dump firmware | works, but freezes key input until replug |
+| Reset to factory defaults | works, covers all modes and layers |
+| Dump firmware | works, but leaves the board read-only until replug |
 | Flash firmware | not implemented |
 
 ## Build
@@ -89,6 +90,16 @@ writes to lives outside the dumped range.
 
 Read the warnings below before running this.
 
+### `hhkb_reset --yes`
+
+Runs `RESET_FACTORY_DEFAULTS` and prints every key it changed, along with the
+DIP state and keyboard mode before and after.
+
+It restores **all** modes and both layers, not just the active one, and leaves
+the DIP state and keyboard mode alone. Verified by modifying a key in three
+different mode/layer combinations and confirming all three came back. Dump your
+keymaps first if you have customisations you want to keep.
+
 ### `decode_keymap.py [dir]`
 
 Renders dumped keymaps as physical layouts and diffs them against HHK mode.
@@ -139,10 +150,12 @@ do, but the vendor one does not.
 
 ## Known issues
 
-`hhkb_fwdump` can hang instead of returning when the board is already in the
-read-only state, because `IOHIDDeviceSetReport` blocks with no timeout of its
-own. Interrupt it and replug the keyboard. Switching to
-`IOHIDDeviceSetReportWithCallback` would fix this properly.
+`IOHIDDeviceSetReport` blocks with no timeout of its own when the board is in
+the read-only state, which no per-read timeout can cover. `hhkb_fwdump` and
+`hhkb_reset` therefore bound the whole run with a 60 second watchdog and exit
+with status 3 rather than hanging; replug the keyboard when that fires. Moving
+to `IOHIDDeviceSetReportWithCallback` would address the cause rather than the
+symptom.
 
 ## Credits
 
