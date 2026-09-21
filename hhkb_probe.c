@@ -150,7 +150,7 @@ int main(void)
 	if (transact(dev, out, 2.0) == 0) {
 		hexdump("response:", g_in, 16);
 		mode = g_in[6];
-		const char *names[] = { "HHK", "Mac", "Lite", "Secret" };
+		const char *names[] = { "HHK", "Mac", "Win", "mode 3 (no stored keymap)" };
 		printf("  mode = %d (%s)\n", mode, mode < 4 ? names[mode] : "?");
 	}
 

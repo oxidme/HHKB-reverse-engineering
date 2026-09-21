@@ -25,7 +25,7 @@
 #define N_MODES 3
 #define WATCHDOG_SECONDS 60
 
-static const char *MODE_NAMES[N_MODES] = { "hhk", "mac", "lite" };
+static const char *MODE_NAMES[N_MODES] = { "hhk", "mac", "win" };
 
 static uint8_t g_in[REPORT_SIZE];
 static volatile int g_got;

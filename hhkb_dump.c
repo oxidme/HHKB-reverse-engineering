@@ -22,7 +22,7 @@
 #define GET_KEYBOARD_MODE 6
 #define GET_KEYMAP 135
 
-static const char *MODE_NAMES[4] = { "hhk", "mac", "lite", "secret" };
+static const char *MODE_NAMES[4] = { "hhk", "mac", "win", "secret" };
 
 static uint8_t g_in[REPORT_SIZE];
 static volatile int g_got;

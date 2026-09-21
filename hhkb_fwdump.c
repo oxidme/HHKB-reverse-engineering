@@ -36,10 +36,14 @@
 static uint8_t g_in[REPORT_SIZE];
 static volatile int g_got;
 
-static void input_cb(void *ctx, IOReturn res, void *sender, IOHIDReportType type,
-		     uint32_t id, uint8_t *report, CFIndex len)
+static void input_cb(void *ctx, IOReturn res, void *sender, IOHIDReportType type, uint32_t id,
+		     uint8_t *report, CFIndex len)
 {
-	(void)ctx; (void)res; (void)sender; (void)type; (void)id;
+	(void)ctx;
+	(void)res;
+	(void)sender;
+	(void)type;
+	(void)id;
 	memset(g_in, 0, sizeof(g_in));
 	memcpy(g_in, report, len < REPORT_SIZE ? len : REPORT_SIZE);
 	g_got = 1;
@@ -133,9 +137,10 @@ int main(int argc, char **argv)
 
 	uint8_t out[REPORT_SIZE];
 	build(out, GET_KEYBOARD_INFO);
-	char serial[17] = { 0 };
+	char serial[17] = {0};
 	if (IOHIDDeviceSetReport(dev, kIOHIDReportTypeOutput, 0, out, REPORT_SIZE) ==
-	    kIOReturnSuccess && wait_report(2.0) == 0)
+		    kIOReturnSuccess &&
+	    wait_report(2.0) == 0)
 		memcpy(serial, g_in + 30, 16);
 	printf("serial: %s\n", serial);
 
@@ -163,8 +168,8 @@ int main(int argc, char **argv)
 			break;
 		}
 		if (g_in[0] != 0x55 || g_in[1] != 0x55 || g_in[2] != DUMP_FIRMWARE) {
-			fprintf(stderr, "unexpected header at packet %d: %02X %02X %02X\n",
-				packets, g_in[0], g_in[1], g_in[2]);
+			fprintf(stderr, "unexpected header at packet %d: %02X %02X %02X\n", packets,
+				g_in[0], g_in[1], g_in[2]);
 			break;
 		}
 		if (g_in[3] != 0) {
@@ -179,8 +184,8 @@ int main(int argc, char **argv)
 		if (packets < 4 || n != CHUNK_MAX)
 			printf("  packet %5d: hdr %02X %02X %02X %02X %02X %02X"
 			       "  seq=%u  bytes=%d\n",
-			       packets, g_in[0], g_in[1], g_in[2], g_in[3], g_in[4], g_in[5],
-			       seq, n);
+			       packets, g_in[0], g_in[1], g_in[2], g_in[3], g_in[4], g_in[5], seq,
+			       n);
 
 		if (n < 0 || n > CHUNK_MAX) {
 			fprintf(stderr, "bad length %d at packet %d\n", n, packets);

@@ -25,9 +25,10 @@ NAMES = {
     0x87: "Ro", 0x88: "Kana", 0x89: "Yen", 0x8A: "Henkn", 0x8B: "Muhen",
     0xE0: "LCtrl", 0xE1: "LShft", 0xE2: "LAlt", 0xE3: "LGUI", 0xE4: "RCtrl",
     0xE5: "RShft", 0xE6: "RAlt", 0xE7: "RGUI",
-    # Reserved in the HID keyboard page; the firmware routes these out of the
-    # consumer interface instead. Exact functions unconfirmed.
-    0xE8: "Med-A", 0xE9: "Med-B", 0xEA: "Med-C", 0xEB: "Med-D",
+    # Reserved in the HID keyboard page; the firmware turns these into consumer
+    # usages on a separate interface. Names per the PD-KB401B manual
+    # (P3PC-6661-06), confirmed by pressing the keys.
+    0xE8: "Vol-", 0xE9: "Vol+", 0xEA: "Mute", 0xEB: "Eject",
 }
 
 # Key numbers run right-to-left, bottom-to-top: 1 is bottom-right, 60 is Esc.
@@ -39,7 +40,7 @@ ROWS = [
     [5, 4, 3, 2, 1],
 ]
 
-MODES = [(0, "hhk"), (1, "mac"), (2, "lite")]
+MODES = [(0, "hhk"), (1, "mac"), (2, "win")]
 
 
 def name(code):

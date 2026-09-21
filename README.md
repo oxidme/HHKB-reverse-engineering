@@ -62,7 +62,7 @@ Dumps every stored keymap (3 modes x 2 layers) to `dir` (default `dumps/`) as
 
 ### `hhkb_write <mode> <fn> <key> <code> [--test] [--notify]`
 
-Writes a single key. `mode` is 0=HHK, 1=Mac, 2=Lite; `fn` is 0 for the base
+Writes a single key. `mode` is 0=HHK, 1=Mac, 2=Win; `fn` is 0 for the base
 layer and 1 for the Fn layer; `key` is 1..60 (1 is the bottom-right key, 60 is
 Esc); `code` is a USB HID keyboard usage.
 
@@ -147,6 +147,31 @@ Match the device by vendor ID `0x04FE` and primary usage page `0xFF00`. Send wit
 report callback and run the run loop rather than calling `GetReport`. This
 interface does not require Input Monitoring permission — the keyboard interfaces
 do, but the vendor one does not.
+
+### Modes
+
+`GET_KEYBOARD_MODE` returns 0 for HHK, 1 for Mac and 2 for Win. There is no
+mode 3: the firmware holds three keymap tables, the manual documents three
+settings, and asking for a fourth times out with no reply at all.
+
+happy-hacking-gnu calls mode 2 "Lite" and mode 3 "Secret". Neither name appears
+in the Professional Classic manual (`P3PC-6661-06`), whose DIP switch table
+gives HHK / Win / Mac for SW1+SW2 of OFF+OFF, ON+OFF and OFF+ON.
+
+### Keycodes
+
+Values are USB HID keyboard usages, with these exceptions:
+
+| Code | Meaning |
+|---|---|
+| `0x01` | Fn — a firmware-internal code, not HID ErrorRollOver |
+| `0x8A` / `0x8B` | Henkan / Muhenkan, on the diamond keys in HHK mode |
+| `0xE8` / `0xE9` / `0xEA` / `0xEB` | Volume Down / Volume Up / Mute / Eject |
+
+The `0xE8`–`0xEB` block is reserved in the HID keyboard page; the firmware turns
+those into consumer usages on a different interface. The mapping is a lookup
+table, not arithmetic — they land on consumer bits 5, 6, 4 and 7 respectively.
+They appear only in Mac mode, as do Power and Caps Lock.
 
 ## Known issues
 
