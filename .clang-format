@@ -1,0 +1,22 @@
+# Linux kernel style, which is what the sources are written in.
+# clangd reads this directly, so no clang-format binary is required.
+BasedOnStyle: LLVM
+Language: Cpp
+
+UseTab: Always
+IndentWidth: 8
+TabWidth: 8
+ContinuationIndentWidth: 8
+ColumnLimit: 100
+
+BreakBeforeBraces: Linux
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+IndentCaseLabels: false
+
+PointerAlignment: Right
+SpaceBeforeParens: ControlStatements
+SortIncludes: Never
+AlignConsecutiveMacros: false
+AlignTrailingComments: false

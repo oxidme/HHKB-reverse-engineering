@@ -1,0 +1,58 @@
+// Project tasks (cmd-shift-p -> "task: spawn")
+//
+// Only non-destructive tasks live here on purpose. `hhkb_write` changes the
+// keyboard and `hhkb_fwdump` freezes key input until the board is replugged,
+// so both are left to a deliberate command in the terminal rather than a
+// one-keystroke task.
+[
+  {
+    "label": "build",
+    "command": "make",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+  },
+  {
+    "label": "clean",
+    "command": "make clean",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always",
+    "use_new_terminal": false,
+  },
+  {
+    "label": "probe keyboard (read-only)",
+    "command": "make hhkb_probe && ./hhkb_probe",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always",
+    "use_new_terminal": false,
+  },
+  {
+    "label": "dump keymaps (read-only)",
+    "command": "make hhkb_dump && ./hhkb_dump dumps",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always",
+    "use_new_terminal": false,
+  },
+  {
+    "label": "decode keymaps",
+    "command": "python3 decode_keymap.py dumps",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always",
+    "use_new_terminal": false,
+  },
+  {
+    "label": "verify keyboard matches dumps/",
+    "command": "make hhkb_dump && ./hhkb_dump /tmp/hhkb-verify >/dev/null && for f in dumps/*.bin; do b=$(basename \"$f\"); cmp -s \"$f\" \"/tmp/hhkb-verify/$b\" && echo \"OK   $b\" || echo \"DIFF $b\"; done",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always",
+    "use_new_terminal": false,
+  },
+  {
+    "label": "clangd check current file",
+    "command": "clangd --check=$ZED_FILE",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always",
+    "use_new_terminal": false,
+  },
+]

@@ -1,0 +1,16 @@
+# Firmware images are PFU's copyrighted work. Never commit them.
+firmware.bin
+*.BIN
+*.bin
+
+# Dumps carry the keyboard's serial number.
+dumps/
+dumps_*/
+
+# Built binaries
+hhkb_probe
+hhkb_dump
+hhkb_write
+hhkb_fwdump
+*.o
+*.dSYM/
