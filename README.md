@@ -1,15 +1,55 @@
 # HHKB-reverse-engineering
 
-Native Apple Silicon tools for the HHKB Professional Classic, built on macOS's own
-IOKit. No Rosetta, no third-party dependencies.
+The USB vendor protocol a Happy Hacking Keyboard speaks to PFU's Keymap Tool,
+written down — with a set of small macOS tools that demonstrate every claim in
+it.
 
-PFU's official HHKB Keymap Tool for Mac is an x86_64 build, so it runs under
-Rosetta on Apple Silicon. It also refuses to edit keymaps on Classic models at
-all. Both of those are properties of the tool, not of the keyboard: the firmware
-answers keymap reads and writes perfectly well.
+PFU documents none of this. The protocol was first worked out by
+[happy-hacking-gnu](https://gitlab.com/dom/happy-hacking-gnu), which is a working
+implementation but not a description: to learn what a command does you read its
+C. As far as I can find, nobody has written the protocol itself down.
 
-Verified on `PD-KB401B` (HHKB Professional Classic, US layout), firmware A4.29,
-macOS 27.0 on an M2.
+So that is what this is. The documentation is the point; the tools exist because
+a protocol description nobody has executed is a guess.
+
+## Documentation
+
+- [docs/protocol.md](docs/protocol.md) — the vendor HID interface, framing,
+  status codes, every known command, how keymaps are represented, and how to
+  drive the whole thing from macOS
+- [docs/keymaps.md](docs/keymaps.md) — the factory keymaps for all three modes
+  and both layers, byte for byte, and what separates the modes
+- [docs/firmware.md](docs/firmware.md) — what `DUMP_FIRMWARE` returns, the MCU it
+  points at, the tables inside the image, and the read-only state it leaves the
+  board in
+
+Everything in there was measured against a `PD-KB401B` (HHKB Professional
+Classic, US layout) on firmware A4.29, under macOS 27.0 on an M2. Where
+something is inferred rather than observed, it says so.
+
+Two corrections to what was previously the only available account: the third
+keyboard mode is Win, not "Lite", and there is no fourth mode at all.
+
+## Protocol in one screen
+
+The keyboard exposes three USB HID interfaces. The third — vendor usage page
+`0xFF00`, 64-byte in and out reports — is the control channel. Match on vendor ID
+`0x04FE` and that usage page.
+
+```
+request   AA AA <cmd> <chunk> <len> <payload...>
+response  55 55 <cmd> <status> <chunk> <len> <payload...>
+```
+
+The request payload starts at offset 5 and the response payload at offset 6,
+because the status byte exists only on the response.
+
+Send with `IOHIDDeviceSetReport`; replies arrive as input reports, so register an
+input report callback and pump the run loop rather than calling `GetReport`. No
+Input Monitoring permission is needed — the keyboard interfaces require it, the
+vendor one does not.
+
+[docs/protocol.md](docs/protocol.md) has the rest.
 
 ## Status
 
@@ -22,45 +62,14 @@ macOS 27.0 on an M2.
 | Dump firmware | works, but leaves the board read-only until replug |
 | Flash firmware | not implemented |
 
-## Findings
+Keymap editing works on a Classic, which PFU's own tool refuses to do. That is a
+property of the tool rather than of the keyboard — the firmware answers the
+write commands the same as any other model.
 
-The protocol and what came out of the firmware are written up separately:
-
-- [docs/protocol.md](docs/protocol.md) — the vendor HID interface, framing,
-  commands, keymap representation, and how to drive it from macOS
-- [docs/keymaps.md](docs/keymaps.md) — the factory keymaps for all three modes
-  and both layers, and how the modes differ
-- [docs/firmware.md](docs/firmware.md) — what `DUMP_FIRMWARE` returns, the MCU,
-  the tables inside the image, and the read-only state it leaves behind
-
-## Build
-
-```
-make
-```
-
-Requires only the Xcode command line tools.
-
-## Development
-
-`compile_flags.txt` gives clangd what it needs; it resolves the macOS SDK on its
-own, so no absolute paths are baked in. `.clang-format` sets the house style —
-attached braces, four spaces, no tabs, 100 columns — and clangd applies it
-directly, so the standalone `clang-format` binary is not required. Xcode's
-command line tools ship one at
-`/Library/Developer/CommandLineTools/usr/bin/clang-format` if you want to run it
-over the tree by hand.
-
-`.zed/` carries folder settings and tasks for [Zed](https://zed.dev). The tasks
-cover building, probing and dumping. Writing a keymap and dumping firmware are
-deliberately absent: both have consequences you should not be one keystroke away
-from.
-
-To check a single file without building:
-
-```
-clangd --check=hhkb_probe.c
-```
+The tools are native arm64 and depend on nothing but macOS itself, so Rosetta is
+not involved. That is worth saying because the official Keymap Tool for Mac is an
+x86_64 build, but it is not a distinction: happy-hacking-gnu builds native on
+macOS too, and this project is not here to replace it.
 
 ## Tools
 
@@ -141,26 +150,34 @@ factory reset path exists, but your own dump is the reliable way back.
 backup firmware bank, which is what recovers the board if the primary image is
 damaged. They are deliberately not implemented here.
 
-## Protocol in one screen
-
-The keyboard exposes three USB HID interfaces. The third — vendor usage page
-`0xFF00`, 64-byte in and out reports — is the control channel. Match on vendor ID
-`0x04FE` and that usage page.
+## Build
 
 ```
-request   AA AA <cmd> <chunk> <len> <payload...>
-response  55 55 <cmd> <status> <chunk> <len> <payload...>
+make
 ```
 
-The request payload starts at offset 5 and the response payload at offset 6,
-because the status byte exists only on the response.
+Requires only the Xcode command line tools.
 
-Send with `IOHIDDeviceSetReport`; replies arrive as input reports, so register an
-input report callback and pump the run loop rather than calling `GetReport`. No
-Input Monitoring permission is needed — the keyboard interfaces require it, the
-vendor one does not.
+## Development
 
-[docs/protocol.md](docs/protocol.md) has the rest.
+`compile_flags.txt` gives clangd what it needs; it resolves the macOS SDK on its
+own, so no absolute paths are baked in. `.clang-format` sets the house style —
+attached braces, four spaces, no tabs, 100 columns — and clangd applies it
+directly, so the standalone `clang-format` binary is not required. Xcode's
+command line tools ship one at
+`/Library/Developer/CommandLineTools/usr/bin/clang-format` if you want to run it
+over the tree by hand.
+
+`.zed/` carries folder settings and tasks for [Zed](https://zed.dev). The tasks
+cover building, probing and dumping. Writing a keymap and dumping firmware are
+deliberately absent: both have consequences you should not be one keystroke away
+from.
+
+To check a single file without building:
+
+```
+clangd --check=hhkb_probe.c
+```
 
 ## Known issues
 
