@@ -5,8 +5,10 @@
 // bytes, and the stream ends on the first short packet.
 //
 // WARNING: the keyboard stops reporting key presses for the rest of the USB
-// session once this command runs. Unplug and replug it afterwards. Nothing is
-// written and no stored data changes -- only key scanning stops.
+// session once this command runs, and the command itself only works once per
+// session -- a second attempt gets no reply at all. Unplug and replug before
+// dumping again. Nothing is written and no stored data changes; only key
+// scanning stops.
 #include <CoreFoundation/CoreFoundation.h>
 #include <IOKit/hid/IOHIDManager.h>
 #include <stdio.h>
@@ -131,7 +133,12 @@ int main(int argc, char **argv)
 
 	for (;;) {
 		if (wait_report(3.0) < 0) {
-			fprintf(stderr, "timeout after %d packet(s)\n", packets);
+			if (packets == 0)
+				fprintf(stderr,
+					"no reply. DUMP_FIRMWARE works once per USB session;\n"
+					"unplug and replug the keyboard, then try again.\n");
+			else
+				fprintf(stderr, "timeout after %d packet(s)\n", packets);
 			break;
 		}
 		if (g_in[0] != 0x55 || g_in[1] != 0x55 || g_in[2] != DUMP_FIRMWARE) {

@@ -120,6 +120,11 @@ static int txn(IOHIDDeviceRef dev, const uint8_t *out, uint8_t cmd, const char *
 	}
 	if (g_in[3] != 0) {
 		printf("    status 0x%02X (rejected)\n", g_in[3]);
+		if (g_in[3] == 0x01)
+			printf("    status 0x01 means the board is read-only, which is what\n"
+			       "    DUMP_FIRMWARE leaves behind. Reads in that state return\n"
+			       "    stale data too, so do not trust a read-back until the\n"
+			       "    keyboard has been unplugged and replugged.\n");
 		return -1;
 	}
 	return 0;

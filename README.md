@@ -79,8 +79,15 @@ signal** — only the read-back is.
 
 ### `hhkb_fwdump [out]`
 
-Dumps the running application firmware (64 KiB) to `out` (default
-`firmware.bin`).
+Dumps the running application firmware to `out` (default `firmware.bin`). The
+image is 64 KiB of plain, unencrypted ARM Cortex-M code that loads at
+`0x08010000` — the second of the board's two firmware banks.
+
+It contains the factory-default keymaps but not the live ones: changing a key
+and dumping again produces a byte-identical image. Whatever `WRITE_KEYMAP`
+writes to lives outside the dumped range.
+
+Read the warnings below before running this.
 
 ### `decode_keymap.py [dir]`
 
@@ -88,10 +95,18 @@ Renders dumped keymaps as physical layouts and diffs them against HHK mode.
 
 ## Warnings
 
-**`hhkb_fwdump` stops the keyboard from reporting key presses.** The vendor
-channel keeps working and nothing stored on the board is modified, but key input
-does not come back until you unplug and replug the keyboard. Have another input
-device available before running it.
+**`hhkb_fwdump` puts the board into a read-only state.** Nothing is written and
+no stored data changes, but until you unplug and replug the keyboard:
+
+- key presses are not reported at all;
+- `hhkb_write` is rejected with status `0x01`;
+- reads can return values that were never written, so a read-back proves
+  nothing;
+- a second `hhkb_fwdump` gets no reply and wedges the vendor channel entirely,
+  after which every request fails until the keyboard is replugged.
+
+Have another input device available before running it, and treat anything you
+read after a status `0x01` as unreliable until the board has been replugged.
 
 **Keymap editing is not a supported use of Classic models.** PFU's tool does not
 offer it. This may matter for warranty purposes. Dump your keymaps first — a
@@ -121,6 +136,13 @@ Match the device by vendor ID `0x04FE` and primary usage page `0xFF00`. Send wit
 report callback and run the run loop rather than calling `GetReport`. This
 interface does not require Input Monitoring permission — the keyboard interfaces
 do, but the vendor one does not.
+
+## Known issues
+
+`hhkb_fwdump` can hang instead of returning when the board is already in the
+read-only state, because `IOHIDDeviceSetReport` blocks with no timeout of its
+own. Interrupt it and replug the keyboard. Switching to
+`IOHIDDeviceSetReportWithCallback` would fix this properly.
 
 ## Credits
 
