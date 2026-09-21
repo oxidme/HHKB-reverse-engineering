@@ -175,8 +175,20 @@ symptom.
 
 The wire protocol was originally reverse engineered by
 [happy-hacking-gnu](https://gitlab.com/dom/happy-hacking-gnu) (The Unlicense),
-a Linux implementation built on hidapi. This project reimplements it on IOKit
-and verifies it against a Classic, which happy-hacking-gnu does not cover.
+a C implementation on hidapi. Its source comments reference symbol names from
+PFU's own tool, so the protocol knowledge here is ultimately its work.
+
+It is worth being precise about what is different here, because
+happy-hacking-gnu is closer to a macOS tool than its documentation suggests: its
+CMake already has a Darwin branch, and it builds as a native arm64 binary with
+only deprecation warnings. Its README documents Linux alone, and it accepts the
+Classic's product ID without saying it was ever tested against one.
+
+This project reimplements the protocol directly on IOKit with no third-party
+dependency, and reports what a Classic actually does — including that mode 2 is
+Win rather than "Lite", that mode 3 does not exist, what `0xE8`–`0xEB` really
+send, and that dumping firmware leaves the board read-only until it is
+replugged, which nothing else documents.
 
 ## License
 
