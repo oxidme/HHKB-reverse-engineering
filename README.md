@@ -22,6 +22,17 @@ macOS 27.0 on an M2.
 | Dump firmware | works, but leaves the board read-only until replug |
 | Flash firmware | not implemented |
 
+## Findings
+
+The protocol and what came out of the firmware are written up separately:
+
+- [docs/protocol.md](docs/protocol.md) — the vendor HID interface, framing,
+  commands, keymap representation, and how to drive it from macOS
+- [docs/keymaps.md](docs/keymaps.md) — the factory keymaps for all three modes
+  and both layers, and how the modes differ
+- [docs/firmware.md](docs/firmware.md) — what `DUMP_FIRMWARE` returns, the MCU,
+  the tables inside the image, and the read-only state it leaves behind
+
 ## Build
 
 ```
@@ -130,51 +141,26 @@ factory reset path exists, but your own dump is the reliable way back.
 backup firmware bank, which is what recovers the board if the primary image is
 damaged. They are deliberately not implemented here.
 
-## Protocol
+## Protocol in one screen
 
-The keyboard exposes three USB HID interfaces. The third one — vendor usage page
-`0xFF00`, 64-byte in and out reports — is the control channel.
-
-Requests and responses are always 64 bytes:
+The keyboard exposes three USB HID interfaces. The third — vendor usage page
+`0xFF00`, 64-byte in and out reports — is the control channel. Match on vendor ID
+`0x04FE` and that usage page.
 
 ```
 request   AA AA <cmd> <chunk> <len> <payload...>
 response  55 55 <cmd> <status> <chunk> <len> <payload...>
 ```
 
-Note the asymmetry: the request payload starts at offset 5, the response payload
-at offset 6, because the status byte only exists on the response.
+The request payload starts at offset 5 and the response payload at offset 6,
+because the status byte exists only on the response.
 
-Match the device by vendor ID `0x04FE` and primary usage page `0xFF00`. Send with
-`IOHIDDeviceSetReport`; responses arrive as input reports, so register an input
-report callback and run the run loop rather than calling `GetReport`. This
-interface does not require Input Monitoring permission — the keyboard interfaces
-do, but the vendor one does not.
+Send with `IOHIDDeviceSetReport`; replies arrive as input reports, so register an
+input report callback and pump the run loop rather than calling `GetReport`. No
+Input Monitoring permission is needed — the keyboard interfaces require it, the
+vendor one does not.
 
-### Modes
-
-`GET_KEYBOARD_MODE` returns 0 for HHK, 1 for Mac and 2 for Win. There is no
-mode 3: the firmware holds three keymap tables, the manual documents three
-settings, and asking for a fourth times out with no reply at all.
-
-happy-hacking-gnu calls mode 2 "Lite" and mode 3 "Secret". Neither name appears
-in the Professional Classic manual (`P3PC-6661-06`), whose DIP switch table
-gives HHK / Win / Mac for SW1+SW2 of OFF+OFF, ON+OFF and OFF+ON.
-
-### Keycodes
-
-Values are USB HID keyboard usages, with these exceptions:
-
-| Code | Meaning |
-|---|---|
-| `0x01` | Fn — a firmware-internal code, not HID ErrorRollOver |
-| `0x8A` / `0x8B` | Henkan / Muhenkan, on the diamond keys in HHK mode |
-| `0xE8` / `0xE9` / `0xEA` / `0xEB` | Volume Down / Volume Up / Mute / Eject |
-
-The `0xE8`–`0xEB` block is reserved in the HID keyboard page; the firmware turns
-those into consumer usages on a different interface. The mapping is a lookup
-table, not arithmetic — they land on consumer bits 5, 6, 4 and 7 respectively.
-They appear only in Mac mode, as do Power and Caps Lock.
+[docs/protocol.md](docs/protocol.md) has the rest.
 
 ## Known issues
 
